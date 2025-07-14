@@ -97,3 +97,22 @@ plt.legend(title='Log Level')
 # 显示图形
 plt.tight_layout()  # 调整布局
 plt.show()
+
+import os
+
+# 指定日志文件所在的目录
+log_directory = 'path_to_your_log_files'
+
+# 获取所有日志文件
+log_files = sorted([f for f in os.listdir(log_directory) if f.endswith('.txt')])
+
+# 指定输出文件路径
+merged_log_path = 'merged_log.txt'
+
+# 打开输出文件
+with open(merged_log_path, 'w') as outfile:
+    # 遍历每个日志文件并按顺序写入输出文件
+    for log_file in log_files:
+        with open(os.path.join(log_directory, log_file), 'r') as infile:
+            outfile.write(infile.read())
+            outfile.write('\n')
