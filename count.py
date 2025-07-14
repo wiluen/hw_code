@@ -1,47 +1,9 @@
-# 定义一个函数来提取时间列和日志级别列
-def extract_time_and_level(log_file_path):
-    # 打开日志文件
-    with open(log_file_path, 'r') as file:
-        # 逐行读取文件内容
-        lines = file.readlines()
-    
-    # 初始化一个列表来存储提取的结果
-    extracted_data = []
-    
-    # 遍历每一行
-    for line in lines:
-        # 去掉行尾的换行符并按列分割
-        columns = line.strip().split()
-        
-        # 检查列数是否足够
-        if len(columns) >= 6:
-            # 提取时间列（第二列）和日志级别列（第五列）
-            time = columns[1]
-            level = columns[4]
-            # 将提取的数据添加到结果列表中
-            extracted_data.append((time, level))
-    
-    return extracted_data
-
-# 指定日志文件路径
-log_file_path = 'log.txt'
-
-# 调用函数并打印结果
-extracted_data = extract_time_and_level(log_file_path)
-for item in extracted_data:
-    print(f"Time: {item[0]}, Level: {item[1]}")
-
-
-
-import csv
 from datetime import datetime, timedelta
 from collections import defaultdict
+import csv
 
 # 定义一个函数来统计多个时间窗口内不同日志级别的数量，并将结果写入 CSV 文件
-def count_logs_in_multiple_time_windows(log_file_path, start_time_str, output_csv_path, time_window_minutes=1):
-    # 将起始时间字符串转换为 datetime 对象
-    start_time = datetime.strptime(start_time_str, '%H:%M:%S.%f')
-    
+def count_logs_in_multiple_time_windows(log_file_path, output_csv_path, time_window_minutes=1):
     # 初始化一个字典来存储每个时间窗口的计数
     counts = defaultdict(lambda: {'I': 0, 'W': 0, 'E': 0})
     
@@ -63,15 +25,15 @@ def count_logs_in_multiple_time_windows(log_file_path, start_time_str, output_cs
             
             # 将时间字符串转换为 datetime 对象
             time = datetime.strptime(time_str, '%H:%M:%S.%f')
-            
+            print('time:',time)
+            print('minus:',timedelta(minutes=time.minute % time_window_minutes, seconds=time.second, microseconds=time.microsecond))
             # 计算当前时间所在的窗口
-            window_start = start_time + timedelta(minutes=(time.minute // time_window_minutes) * time_window_minutes)
-            
-            # 检查时间是否在某个窗口内
-            if start_time <= time:
-                # 根据日志级别更新计数器
-                if level in counts[window_start]:
-                    counts[window_start][level] += 1
+            window_start = time - timedelta(minutes=time.minute % time_window_minutes, seconds=time.second, microseconds=time.microsecond)
+            window_end = window_start + timedelta(minutes=time_window_minutes)
+            print(window_start)
+            # 根据日志级别更新计数器
+            if level in counts[window_start]:
+                counts[window_start][level] += 1
     
     # 将结果写入 CSV 文件
     with open(output_csv_path, 'w', newline='') as csvfile:
@@ -90,12 +52,9 @@ def count_logs_in_multiple_time_windows(log_file_path, start_time_str, output_cs
 # 指定日志文件路径和输出 CSV 文件路径
 log_file_path = 'log.txt'
 output_csv_path = 'log_counts.csv'
-start_time_str = '19:35:16.016'
 
 # 调用函数并生成 CSV 文件
-count_logs_in_multiple_time_windows(log_file_path, start_time_str, output_csv_path)
-
-
+count_logs_in_multiple_time_windows(log_file_path, output_csv_path)
 
 
 
