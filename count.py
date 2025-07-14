@@ -116,3 +116,46 @@ with open(merged_log_path, 'w') as outfile:
         with open(os.path.join(log_directory, log_file), 'r') as infile:
             outfile.write(infile.read())
             outfile.write('\n')
+
+# ====================
+csv_files = sorted([f for f in os.listdir(csv_directory) if f.endswith('.csv')])
+
+# 初始化一个字典来存储每个时间窗口的计数
+merged_counts = defaultdict(lambda: {'I': 0, 'W': 0, 'E': 0})
+
+# 遍历每个 CSV 文件并合并数据
+for csv_file in csv_files:
+    # 拼接完整的文件路径
+    file_path = os.path.join(csv_directory, csv_file)
+    
+    try:
+        # 打开并读取 CSV 文件
+        with open(file_path, 'r') as infile:
+            reader = csv.DictReader(infile)
+            for row in reader:
+                time_window = row['Time Window']
+                merged_counts[time_window]['I'] += int(row['I'])
+                merged_counts[time_window]['W'] += int(row['W'])
+                merged_counts[time_window]['E'] += int(row['E'])
+    except Exception as e:
+        print(f"Error processing file {file_path}: {e}")
+        continue
+
+# 指定输出文件路径
+merged_csv_path = 'merged_log_counts.csv'
+
+# 将合并后的数据写入新的 CSV 文件
+with open(merged_csv_path, 'w', newline='') as csvfile:
+    fieldnames = ['Time Window', 'I', 'W', 'E']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    
+    writer.writeheader()
+    for time_window, counts in sorted(merged_counts.items()):
+        writer.writerow({
+            'Time Window': time_window,
+            'I': counts['I'],
+            'W': counts['W'],
+            'E': counts['E']
+        })
+
+print(f"Merged data has been written to {merged_csv_path}")
